@@ -7,7 +7,6 @@ def main
 	training_image_list = []
 	test_image_list = []
 
-
 	10.times do |letter|
 		7.times do |sample|
 			training_image_list << ImageList.new("#{letter+1}/#{sample+1}.png")
@@ -21,7 +20,6 @@ def main
 	end     ###        Klasörün içinde bulunan Image dosyalarını çekiyor. ####
 
 										 #  IMAGES GENERATED   #
-
 
 	training_image_list.each do |image|
 		resized_image = resize_image(image)
@@ -53,7 +51,7 @@ def main
 
 	@test_set.each do |array_of_bits|
 		print_image_to_console(array_of_bits)
-		print "\n #{array_of_bits.count}"
+		#print "\n #{array_of_bits.count}"
 		print "\n\n"
 	end
 	#  Bit Dizilerini Konsola Yazdıran Fonksiyona Çağrı  ###KONTROL İÇİN#####
@@ -62,8 +60,7 @@ def main
 	train_the_network
 	test_the_network
 
-
-	##### Sırasıyla Ağın Oluşturulması, Eğitilmesi ve Test Edilmesi... ####3
+	##### Sırasıyla Ağın Oluşturulması, Eğitilmesi ve Test Edilmesi... #####
 end
 
 def resize_image(image)    # Resim Kırpma
@@ -73,7 +70,6 @@ end
 def quantize_the_image(image)    #Renk Filtresi
 	image.quantize(2,GRAYColorspace)
 end
-
 
 def convert_pixel_to_color(image)    #Kullanılan Kütüphaneye ait pixel nesnesinden string karşılığna dönüşüm
 	pixels = []
@@ -94,8 +90,6 @@ def replace_color_with_bits(array_of_pixels)   ###String Elemanların Bit Dizisi
 	end
 	array_of_bits
 end
-
-
 
 def fill_blanks(array_of_pixels)  #20x20 formatı dışında oluşan bit dizilerini bu formata uyarlama.Örn: 20x17 => 20x20 işlemini '0' ekleyek yapar
 	gap = 0
@@ -150,10 +144,9 @@ end
 def train_the_network  #Ağın Eğitimi. Algoritma: LVQ-X   
 	@epoch.times do 
 		@training_set.each_with_index do |sample , number_of_sample|
-			puts "number_of_sample : #{number_of_sample}"
-			puts "örnek sayısı : #{@training_set.count}"
+			#puts "number_of_sample : #{number_of_sample}"
+			#puts "örnek sayısı : #{@training_set.count}"
 			distances_of_neurons = []
-			#result_of_neurons =  forward_computing
 			@weights_of_neurons.each do |weights_of_neuron|
 				distance = calculate_the_distance(weights_of_neuron , sample)
 			 distances_of_neurons << distance
@@ -161,15 +154,14 @@ def train_the_network  #Ağın Eğitimi. Algoritma: LVQ-X
 			winners =  find_the_winners(distances_of_neurons , number_of_sample , 7)
 
 			if winners.uniq.count == 2  ## (Global Kazanan == Yerel Kazanan)?
-				print winners
 				punish_the_neuron(@weights_of_neurons[distances_of_neurons.index(winners[0])], sample)
 				reward_the_neuron(@weights_of_neurons[distances_of_neurons.index(winners[1])] , sample)
 			else
 				reward_the_neuron(@weights_of_neurons[distances_of_neurons.index(winners[0])], sample)
 			end
 		end
-		#@lambda -= 0.00005
 	end
+	print "....Ending of Training...\n"
 end
 
 def calculate_the_distance(weights_of_neuron , sample) #Proseslerin Girişe Olan Uzaklığını Ölçen Fonksiyon
@@ -180,13 +172,12 @@ def calculate_the_distance(weights_of_neuron , sample) #Proseslerin Girişe Olan
 	Math.sqrt(square_of_distance)
 end
 
-
 def find_the_winners(distances_of_neurons , number_of_sample , total_number_of_samples) #Kazanan Prosesi Bul
 	distances_of_correct_sector = []
-	puts "number_of_sample : #{number_of_sample}"
-	puts "total_number_of_samples : #{total_number_of_samples}"
+	#puts "number_of_sample : #{number_of_sample}"
+	#puts "total_number_of_samples : #{total_number_of_samples}"
 	start_of_correct_sector = (( number_of_sample  / total_number_of_samples  ) * 4)
-	puts "start of correct sector : #{start_of_correct_sector}"
+	#puts "start of correct sector : #{start_of_correct_sector}"
 	winners = []
 
 	global_winner = distances_of_neurons.min
@@ -197,46 +188,35 @@ def find_the_winners(distances_of_neurons , number_of_sample , total_number_of_s
 	end
 	local_winner = distances_of_correct_sector.min
 	winners << local_winner
-	puts distances_of_neurons
-	puts "Kazananlar #{winners}"
-	puts "Global #{distances_of_neurons.index(winners[0])}"
-	puts "Yerel #{distances_of_neurons.index(winners[1])}"
+	#puts distances_of_neurons
+	#puts "Kazananlar #{winners}"
+	#puts "Global #{distances_of_neurons.index(winners[0])}"
+	#puts "Yerel #{distances_of_neurons.index(winners[1])}"
 	winners
 end
 
-
 def punish_the_neuron(weights_of_neuron , sample)  #Prosesi Cezalandır
-	puts "Cezalandırılan Neuron #{@weights_of_neurons.index(weights_of_neuron)}"
-	a = weights_of_neuron
+	#puts "Cezalandırılan Neuron #{@weights_of_neurons.index(weights_of_neuron)}"
 	index_of_neuron = @weights_of_neurons.index(weights_of_neuron)
 	new_weights_neuron = []
 	weights_of_neuron.map.with_index(0) do |weight_of_neuron , input|
 		new_weights_neuron << weight_of_neuron -  ( @lambda * (sample[input] - weight_of_neuron) )
 	end
 	@weights_of_neurons[index_of_neuron] = new_weights_neuron
-	puts "same?: #{a == @weights_of_neurons[index_of_neuron]}"
-	#puts "Sameee? : #{weights_of_neuron == a}"
-	#puts "Same? : #{@weights_of_neurons[index_of_neuron] == a}"
 end
 
 def reward_the_neuron(weights_of_neuron , sample)  #Prosesi Ödüllendir.
-	puts "Cezalandırılan Neuron #{@weights_of_neurons.index(weights_of_neuron)}"
-	a = weights_of_neuron
+	#puts "Cezalandırılan Neuron #{@weights_of_neurons.index(weights_of_neuron)}"
 	index_of_neuron = @weights_of_neurons.index(weights_of_neuron)
 	new_weights_neuron = []
 	weights_of_neuron.map.with_index(0) do |weight_of_neuron , input|
 		new_weights_neuron << weight_of_neuron +  ( @lambda * (sample[input] - weight_of_neuron) )
 	end
 	@weights_of_neurons[index_of_neuron] = new_weights_neuron
-	puts "same?: #{a == @weights_of_neurons[index_of_neuron]}"
-	#puts "Sameee? : #{weights_of_neuron == a}"
-	#puts "Same? : #{@weights_of_neurons[index_of_neuron] == a}"
 end
 
-
-
 def test_the_network #Test İşlemi
-	print "Initiating The Test...\n"
+	print "....Initiating The Test...\n"
 	number_of_test_sample = @test_set.count
 	number_of_correct_calculation = 0
 	@test_set.each_with_index do |sample , number_of_sample|
